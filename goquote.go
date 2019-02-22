@@ -24,11 +24,34 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 )
+
+func usage() {
+	fmt.Fprint(os.Stderr, `Usage: goquote MODE
+
+MODE may be one of the following to change quote behavior:
+  q   - Quoted string. (Default)
+  qa  - Quoted ASCII string.
+  ra  - Backquoted single-line ASCII string.
+  r   - Backquoted single-line string.
+  x   - Quoted byte string (\xHH only).
+  bs  - Quoted []byte() slice.
+  bsa - Quoted ASCII []byte() slice.
+  b   - Byte slice of octets.
+  0b  - Byte slice of octets. (0-prefix)
+  ba  - ASCII [N]byte array.
+  0ba - ASCII [N]byte array. (0-prefix)
+
+MODEs beginning with a 0 are equivalent to those that do not, except
+that they render single-nibble bytes with a leading 0 (0x0f).
+`,
+	)
+}
 
 func write(buf *bytes.Buffer, b []byte, mode string) {
 	var (
@@ -108,6 +131,7 @@ loop:
 }
 
 func main() {
+	flag.CommandLine.Usage = usage
 	flag.Parse()
 
 	b, err := ioutil.ReadAll(os.Stdin)
