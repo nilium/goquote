@@ -168,6 +168,10 @@ func main() {
 		}
 	}
 
+	if sep == "\n" && isTTY() {
+		buf.WriteString(sep)
+	}
+
 	var err error
 
 	if err == nil && buf.Len() > 0 {
@@ -177,4 +181,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to write output string: ", err)
 	}
+}
+
+// isTTY attempts to determine whether the current stdout refers to a terminal.
+func isTTY() bool {
+	fi, err := os.Stdout.Stat()
+	if err != nil {
+		return false
+	}
+	return (fi.Mode() & os.ModeNamedPipe) != os.ModeNamedPipe
 }
