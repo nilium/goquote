@@ -68,6 +68,10 @@ func write(buf *bytes.Buffer, b []byte, mode string) {
 
 loop:
 	switch mode {
+	case "", "q":
+		buf.WriteString(strconv.Quote(string(b)))
+	case "qa":
+		buf.WriteString(strconv.QuoteToASCII(string(b)))
 	case "ra":
 		bsmode = "qa"
 		fallthrough
@@ -79,10 +83,6 @@ loop:
 		buf.WriteByte('`')
 		buf.Write(b)
 		buf.WriteByte('`')
-	case "", "q":
-		buf.WriteString(strconv.Quote(string(b)))
-	case "qa":
-		buf.WriteString(strconv.QuoteToASCII(string(b)))
 	case "x":
 		buf.WriteByte('"')
 		for _, c := range b {
@@ -103,13 +103,12 @@ loop:
 		write(buf, b, bsmode)
 		buf.WriteByte(')')
 
+	case "0ba":
+		pad = true
+		fallthrough
 	case "ba":
 		lenstr = strconv.Itoa(len(b))
 		mode = "b"
-		goto loop
-	case "0ba":
-		pad = true
-		mode = "ba"
 		goto loop
 
 	case "0b":
