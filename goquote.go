@@ -32,7 +32,10 @@ import (
 )
 
 func usage() {
-	fmt.Fprint(os.Stderr, `Usage: goquote MODE
+	fmt.Fprint(os.Stderr, `Usage: goquote [OPTIONS] [MODE [ARGS...]]
+
+If no ARGS are given, stdin is read and written as a Go string using
+a mode below.
 
 MODE may be one of the following to change quote behavior:
   q   - Quoted string. (Default)
@@ -49,6 +52,9 @@ MODE may be one of the following to change quote behavior:
 
 MODEs beginning with a 0 are equivalent to those that do not, except
 that they render single-nibble bytes with a leading 0 (0x0f).
+
+OPTIONS
+  -s SEP   Separator (allows escape characters; default: "\n")
 `,
 	)
 }
@@ -131,19 +137,37 @@ loop:
 }
 
 func main() {
+	var sep = "\n"
 	flag.CommandLine.Usage = usage
+	flag.StringVar(&sep, "s", sep, "Separator")
 	flag.Parse()
 
-	b, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatal(err)
+	if u, err := strconv.Unquote(`"` + sep + `"`); err == nil {
+		sep = u
 	}
 
-	var (
-		buf  bytes.Buffer
+	mode := ""
+	if flag.NArg() > 0 {
 		mode = flag.Arg(0)
-	)
-	write(&buf, b, mode)
+	}
+
+	var buf bytes.Buffer
+	if flag.NArg() <= 1 {
+		b, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatal(err)
+		}
+		write(&buf, b, mode)
+	} else {
+		for i, arg := range flag.Args()[1:] {
+			if i > 0 {
+				buf.WriteString(sep)
+			}
+			write(&buf, []byte(arg), mode)
+		}
+	}
+
+	var err error
 
 	if err == nil && buf.Len() > 0 {
 		_, err = buf.WriteTo(os.Stdout)
