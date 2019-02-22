@@ -23,6 +23,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -38,17 +39,18 @@ If no ARGS are given, stdin is read and written as a Go string using
 a mode below.
 
 MODE may be one of the following to change quote behavior:
-  q   - Quoted string. (Default)
-  qa  - Quoted ASCII string.
-  ra  - Backquoted single-line ASCII string.
-  r   - Backquoted single-line string.
-  x   - Quoted byte string (\xHH only).
-  bs  - Quoted []byte() slice.
-  bsa - Quoted ASCII []byte() slice.
-  b   - Byte slice of octets.
-  0b  - Byte slice of octets. (0-prefix)
-  ba  - ASCII [N]byte array.
-  0ba - ASCII [N]byte array. (0-prefix)
+  q   - Quoted string (default)
+  qa  - Quoted ASCII string
+  ra  - Backquoted single-line ASCII string
+  r   - Backquoted single-line string
+  x   - Quoted byte string (\xHH only)
+  bs  - Quoted []byte() slice
+  bsa - Quoted ASCII []byte() slice
+  b   - Byte slice of octets
+  0b  - Byte slice of octets (0-prefix)
+  ba  - ASCII [N]byte array
+  0ba - ASCII [N]byte array (0-prefix)
+  j   - JSON string
 
 MODEs beginning with a 0 are equivalent to those that do not, except
 that they render single-nibble bytes with a leading 0 (0x0f).
@@ -130,6 +132,12 @@ loop:
 			buf.WriteString(h)
 		}
 		buf.WriteByte('}')
+	case "j": // JSON
+		p, err := json.Marshal(string(b))
+		if err != nil {
+			log.Fatalf("unable to marshal %q as JSON: %v", b, err)
+		}
+		buf.Write(p)
 	default:
 		log.Fatalf("invalid format code %q", flag.Arg(0))
 	}
