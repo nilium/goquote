@@ -141,7 +141,9 @@ func main() {
 	flag.StringVar(&sep, "s", sep, "Separator")
 	flag.Parse()
 
-	if u, err := strconv.Unquote(`"` + sep + `"`); err == nil {
+	if sep == `\0` {
+		sep = "\x00"
+	} else if u, err := strconv.Unquote(`"` + sep + `"`); err == nil {
 		sep = u
 	}
 
