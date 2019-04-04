@@ -1,21 +1,7 @@
 // Command goquote reads from a string standard input and prints it out as a quoted string for use in Go source code.
 //
-// goquote accepts an optional format specifier as its first and only argument. The format can be
-// one of:
-//
-//  - q   :: Print a quoted UTF-8 string. (Default)
-//  - r   :: Attempt to print a backquoted string. If unavailable, fall back to a normal quoted
-//           string.
-//  - ra  :: Attempt to print a backquoted string. Fallback to an ASCII-friendly quoted string.
-//  - qa  :: Print a quoted ASCII string. Unicode values are escaped.
-//  - x   :: Print a string made up of only escaped hex codes.
-//  - b   :: Print a byte slice.
-//  - 0b  :: Print a byte slice -- each octet is zero-padded.
-//  - ba  :: Print a byte array.
-//  - 0ba :: Print a byte array -- each octet is zero-padded.
-//  - bs  :: Print a string-to-byte slice conversion ([]byte("quote")).
-//  - bsa :: Print a string-to-byte slice conversion ([]byte("quote")). The quoted string only
-//           contains ASCII characters.
+// goquote accepts an optional format specifier as its first and only argument.
+// Formats are described in the command's usage text (-h or -help).
 //
 // This tool is primarily intended for use in editors.
 //
@@ -35,28 +21,41 @@ import (
 func usage() {
 	fmt.Fprint(os.Stderr, `Usage: goquote [OPTIONS] [MODE [ARGS...]]
 
-If no ARGS are given, stdin is read and written as a Go string using
-a mode below.
+If no ARGS are given, standard input is read and written as a Go string
+using a mode below.
 
 MODE may be one of the following to change quote behavior:
   q   - Quoted string (default)
+        "string"
   qa  - Quoted ASCII string
+        "string\tescaped"
   ra  - Backquoted single-line ASCII string
+        `+"`string`"+`
   r   - Backquoted single-line string
+        `+"`string`"+`
   x   - Quoted byte string (\xHH only)
+        "\x73\x74\x72\x69\x6e\x67"
   bs  - Quoted []byte() slice
+        []byte("string")
   bsa - Quoted ASCII []byte() slice
+        []byte("string")
   b   - Byte slice of octets
-  0b  - Byte slice of octets (0-prefix)
+        []byte{0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x1}
+  0b  - Byte slice of octets (with leading zero)
+        []byte{0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x01}
   ba  - ASCII [N]byte array
-  0ba - ASCII [N]byte array (0-prefix)
+        [6]byte{0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x1}
+  0ba - ASCII [N]byte array (with leading zero)
+        [6]byte{0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x01}
   j   - JSON string
+        "string"
 
 MODEs beginning with a 0 are equivalent to those that do not, except
 that they render single-nibble bytes with a leading 0 (0x0f).
 
 OPTIONS
-  -s SEP   Separator (allows escape characters; default: "\n")
+  -s SEP        Separator (allows escape characters; default: "\n")
+  -h, -help     Print this usage text.
 `,
 	)
 }
