@@ -55,6 +55,7 @@ that they render single-nibble bytes with a leading 0 (0x0f).
 
 OPTIONS
   -s SEP        Separator (allows escape characters; default: "\n")
+  -c            Trim trailing newline from standard input
   -h, -help     Print this usage text.
 `,
 	)
@@ -143,9 +144,11 @@ loop:
 }
 
 func main() {
-	var sep = "\n"
+	sep := "\n"
+	chomp := false
 	flag.CommandLine.Usage = usage
 	flag.StringVar(&sep, "s", sep, "Separator")
+	flag.BoolVar(&chomp, "c", chomp, "Chomp")
 	flag.Parse()
 
 	if sep == `\0` {
@@ -155,19 +158,23 @@ func main() {
 	}
 
 	mode := ""
-	if flag.NArg() > 0 {
-		mode = flag.Arg(0)
+	argv := flag.Args()
+	if len(argv) > 0 {
+		mode, argv = argv[0], argv[1:]
 	}
 
 	var buf bytes.Buffer
-	if flag.NArg() <= 1 {
+	if len(argv) == 0 {
 		b, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatal(err)
 		}
+		if n := len(b); chomp && n > 0 && b[n-1] == '\n' {
+			b = b[:n-1]
+		}
 		write(&buf, b, mode)
 	} else {
-		for i, arg := range flag.Args()[1:] {
+		for i, arg := range argv {
 			if i > 0 {
 				buf.WriteString(sep)
 			}
