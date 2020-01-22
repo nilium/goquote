@@ -16,6 +16,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func usage() {
@@ -28,7 +29,11 @@ MODE may be one of the following to change quote behavior:
   q   - Quoted string (default)
         "string"
   qa  - Quoted ASCII string
-        "string\tescaped"
+        "string\n\tescaped"
+  ql  - Quoted multi-line ASCII string.
+        "string" +
+	    "\tescaped"
+  qla - Same as ql, but with ASCII string formatting.
   ra  - Backquoted single-line ASCII string
         `+"`string`"+`
   r   - Backquoted single-line string
@@ -85,6 +90,28 @@ loop:
 		buf.WriteByte('`')
 		buf.Write(b)
 		buf.WriteByte('`')
+	case "ql", "qla":
+		quotefn := strconv.Quote
+		fallback := "q"
+		if mode == "qla" {
+			quotefn = strconv.QuoteToASCII
+			fallback = "qa"
+		}
+		lines := strings.Split(string(b), "\n")
+		if len(lines) <= 1 {
+			mode = fallback
+			goto loop
+		}
+		lead := ""
+		for i, line := range lines {
+			line = quotefn(line)
+			buf.WriteString(lead)
+			buf.WriteString(line)
+			if i < len(lines)-1 {
+				buf.WriteString(" +\n")
+			}
+			lead = "\t"
+		}
 	case "x":
 		buf.WriteByte('"')
 		for _, c := range b {
