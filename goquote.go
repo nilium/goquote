@@ -97,7 +97,7 @@ loop:
 			quotefn = strconv.QuoteToASCII
 			fallback = "qa"
 		}
-		lines := strings.Split(string(b), "\n")
+		lines := strings.SplitAfter(string(b), "\n")
 		if len(lines) <= 1 {
 			mode = fallback
 			goto loop
